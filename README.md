@@ -20,6 +20,15 @@ compatible) http://docs.python.org/2/library/socketserver.html
 
 Resources consulted:
 
-https://docs.python.org/2/library/urlparse.html, Date viewed: Jan. 30, 2017
+https://docs.python.org/2/library/urlparse.html, Date viewed: Jan. 31, 2017
 
-https://docs.python.org/2/library/socket.htmll, Date viewed: Jan. 30, 2017
+https://docs.python.org/2/library/socket.htmll, Date viewed: Jan. 31, 2017
+
+https://docs.python.org/2/library/urllib.html, Date viewed: Jan. 31, 2017
+
+https://docs.python.org/2/library/re.html, Date viewed: Feb. 1, 2017
+
+Jacob Gabrielson, http://stackoverflow.com/questions/988228/convert-a-string-representation-of-a-dictionary-to-a-dictionary
+-for line 114 in httpclient.py
+
+https://docs.python.org/2/library/ast.html, Date viewed: Feb. 1, 2017

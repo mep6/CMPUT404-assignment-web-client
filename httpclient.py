@@ -24,6 +24,7 @@ import re
 # you may use urllib to encode data appropriately
 import urllib
 from urlparse import urlparse
+import ast
 
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
@@ -90,7 +91,7 @@ class HTTPClient(object):
 
         return [hostname, path, port]
 
-    def createRequest(self, method, urlList):
+    def createRequest(self, method, urlList, args=None):
         host = urlList[0]
         path = urlList[1]
         port = urlList[2]
@@ -100,11 +101,37 @@ class HTTPClient(object):
         statusLine = method + " " + path + " HTTP/1.1\r\n"
         headerHost = "Host: " + host + "\r\n"
         headerAccept = "Accept: */*\r\n"
+        request = statusLine + headerHost + headerAccept
+
+        body = ""
+        if (method == "POST"):
+            length = 0
+            if (args):
+                if (type(args) is str): #is args a string and not already a dictionary?
+                    if (args.find('{') > -1): #is the string a dictionary?
+                        try:
+                            #Jacob Gabrielson, http://stackoverflow.com/questions/988228/convert-a-string-representation-of-a-dictionary-to-a-dictionary
+                            args = ast.literal_eval(args)
+                        except (ValueError, SyntaxError, TypeError):
+                            print "String of dictionary is malformed."
+                            args = None
+                    elif (args.find('=') > -1): #is stringa list of params?
+                        varList = re.split("&|;", args)
+                        args = {}
+                        for var in varList:
+                            pair = var.split("=")
+                            args[pair[0]] = pair[1]
+
+                body = urllib.urlencode(args)
+                length = len(body)
+                
+            headerContentLength = "Content-Length: " + str(length) + "\r\n"
+            headerContentType = "Content-Type: application/x-www-form-urlencoded\r\n"
+            request += headerContentLength + headerContentType
+
         close = "Connection: close\r\n"
         delimiterLine = "\r\n"
-        body = ""
-
-        request = statusLine + headerHost + headerAccept + close + delimiterLine + body
+        request += close + delimiterLine + body
 
         #print request
 
@@ -126,15 +153,27 @@ class HTTPClient(object):
         code = self.get_code(response)
         body = self.get_body(response)
 
-        print response
+        print body
         return HTTPResponse(int(code), body)
 
     def POST(self, url, args=None):
         urlList = self.parseURL(url)
+        host = urlList[0]
+        path = urlList[1]
+        port = urlList[2]
 
-        code = 500
-        body = ""
-        return HTTPResponse(code, body)
+        request = self.createRequest("POST", urlList, args)
+
+        socket = self.connect(host, port)
+        socket.sendall(request)
+
+        response = self.recvall(socket)
+
+        code = self.get_code(response)
+        body = self.get_body(response)
+
+        print body
+        return HTTPResponse(int(code), body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
@@ -151,4 +190,4 @@ if __name__ == "__main__":
     elif (len(sys.argv) == 3):
         print client.command( sys.argv[2], sys.argv[1] )
     else:
-        print client.command( sys.argv[1] )
+        print client.command( sys.argv[2], sys.argv[1], sys.argv[3] )
